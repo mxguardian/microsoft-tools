@@ -1,2 +1,4 @@
 # microsoft-tools
-A collection of scripts to automate provisioning Microsoft 365 to work with MXGuardian
+A collection of PowerShell scripts to automate provisioning Microsoft 365 Exchange Online to work with MXGuardian
+
+
