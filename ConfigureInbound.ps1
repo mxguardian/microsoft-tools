@@ -1,5 +1,4 @@
-# This script configures an inbound connector for MXGuardian in Exchange Online.
-# It checks if the connector already exists and updates it if necessary.
+# This script configures Microsoft Exchange Online for MXGuardian.
 
 # Define parameters for the script
 param(
@@ -21,12 +20,18 @@ $mxguardianIPs = @(
     "54.84.110.207",
     "54.173.91.73"
 )
+$trustedArcSealers = @(
+    "mxguardian.net"
+)
 $scriptName = $MyInvocation.MyCommand.Name
 $warningText = @"
 This script will:
  - Install the ExchangeOnlineManagement module if not present.
  - Connect to Exchange Online.
  - Create an inbound connector for MXGuardian
+ - Configure the connector to only accept email from MXGuardian's IP addresses.
+ - Enable Enhanced Filtering for Connectors (i.e. skip-listing)
+ - Set trusted ARC sealers for MXGuardian.
 
 Before running this script, ensure that:
  - All domains in your organization are intended to use MXGuardian for email filtering.
@@ -34,7 +39,7 @@ Before running this script, ensure that:
  - You have waited for DNS propagation to complete.
  - There are no existing connectors that conflict with this configuration.
 
-If you have manually created an inbound connector for MXGuardian, please delete it before running this script.
+If you have manually created any inbound connectors for MXGuardian, please delete them before running this script.
 
 Proceed only if you understand the impact.
 "@
@@ -43,12 +48,11 @@ Proceed only if you understand the impact.
 if ($Help) {
     Write-Host "Usage: $scriptName [-Help] [-Force]"
     Write-Host ""
-    Write-Host "This script configures an inbound connector for MXGuardian in Exchange Online."
-    Write-Host "It checks if the connector already exists and updates it if necessary."
-    Write-Host ""
     Write-Host "Parameters:"
     Write-Host "  -Help   : Display this help information."
     Write-Host "  -Force  : Bypass confirmation prompts and warnings."
+    Write-Host ""
+    Write-Host $warningText
     exit
 }
 
@@ -109,4 +113,8 @@ if ($existing) {
         -Comment $comment
 }
 
-Write-Host "Connector '$connectorName' is configured."
+# Set the trusted ARC sealers for MXGuardian
+Write-Host "Setting trusted ARC sealers for MXGuardian..."
+Set-ArcConfig -Identity Default -ArcTrustedSealers $trustedArcSealers | Out-Null
+
+Write-Host "Configuration complete. The inbound connector for MXGuardian has been set up successfully."
